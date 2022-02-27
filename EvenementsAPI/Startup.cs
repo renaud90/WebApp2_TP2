@@ -1,9 +1,13 @@
 using EvenementsAPI.BusinessLogic;
+using EvenementsAPI.Data;
 using EvenementsAPI.Filters;
+using EvenementsAPI.Models;
+using EvenementsAPI.Repositories;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.HttpsPolicy;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -31,9 +35,19 @@ namespace EvenementsAPI
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
+            services.AddScoped<IEvenementRepository, EvenementRepository>();
+            services.AddScoped<IVilleRepository, VilleRepository>();
+            services.AddScoped<IRepository<Categorie>, Repository<Categorie>>();
+            services.AddScoped<IRepository<Participation>, Repository<Participation>>();
+            services.AddScoped<IRepository<CategorieEvenement>, Repository<CategorieEvenement>>();
+            services.AddScoped<IEvenementsBL, EvenementsBL>();
             services.AddScoped<IParticipationsBL,ParticipationsBL>();
             services.AddScoped<IVillesBL,VillesBL>();
             services.AddScoped<ICategoriesBL, CategoriesBL>();
+
+            services.AddDbContext<EvenementsContext>(options =>
+                options
+                .UseNpgsql(Configuration.GetConnectionString("EvenementsContext")));
 
             services.AddControllers(o => { o.AllowEmptyInputInBodyModelBinding = true; o.Filters.Add<HtppResponseExceptionFilter>(); })
                 .ConfigureApiBehaviorOptions(o => o.SuppressModelStateInvalidFilter = true)

@@ -1,4 +1,4 @@
-﻿using EvenementsAPI.Models;
+﻿using EvenementsAPI.DTO;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -8,12 +8,13 @@ namespace EvenementsAPI.BusinessLogic
 {
     public interface IVillesBL
     {
-        public IEnumerable<Ville> GetList();
-        public Ville Get(int id);
+        public IEnumerable<VilleDTO> GetList();
+        public VilleDTO Get(int id);
+        public IEnumerable<EvenementDTO> GetEvenements(int id);
 
-        public Ville Add(Ville value);
-        public Ville Updade(int id, Ville value);
+        public VilleDTO Add(VilleDTO value);
+        public VilleDTO Updade(int id, VilleDTO value);
 
-        public Ville Delete(int id);
+        public void Delete(int id);
     }
 }

@@ -1,4 +1,4 @@
-﻿using EvenementsAPI.Models;
+﻿using EvenementsAPI.DTO;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -8,12 +8,12 @@ namespace EvenementsAPI.BusinessLogic
 {
     public interface IParticipationsBL
     {
-        public IEnumerable<Participation> GetList();
-        public Participation Get(int id);
+        public IEnumerable<ParticipationDTO> GetList();
+        public ParticipationDTO Get(int id);
+        public bool GetStatus(int id);
 
-        public Participation Add(Participation value);
-        public Participation Updade(int id, Participation value);
+        public ParticipationDTO Add(ParticipationDTO value);
 
-        public Participation Delete(int id);
+        public void Delete(int id);
     }
 }

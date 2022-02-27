@@ -4,12 +4,11 @@ using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace EvenementsAPI.Models
+namespace EvenementsAPI.DTO
 {
-    public class Categorie : BaseEntite
+    public class CategorieDTO
     {
-        [Required]
+        public int Id { get; set; }
         public string Nom { get; set; }
-        public ICollection<CategorieEvenement> EvenementCategories { get; set; }
     }
 }

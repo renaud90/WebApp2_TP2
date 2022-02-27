@@ -1,5 +1,5 @@
 ﻿using EvenementsAPI.BusinessLogic;
-using EvenementsAPI.Models;
+using EvenementsAPI.DTO;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using System;
@@ -9,11 +9,14 @@ using System.Threading.Tasks;
 
 namespace EvenementsAPI.Controllers
 {
+    [Route("api/[controller]")]
+    [ApiController]
+    [Produces("application/json")]
     public class VillesController : ControllerBase
     {
         private readonly IVillesBL _villesBL;
 
-     public VillesController(IVillesBL villesBL)
+        public VillesController(IVillesBL villesBL)
         {
             _villesBL = villesBL;
         }
@@ -24,10 +27,10 @@ namespace EvenementsAPI.Controllers
         /// </summary>
         /// <returns></returns>
         [HttpGet]
-        [ProducesResponseType(typeof(List<Ville>), StatusCodes.Status200OK)]
-        public ActionResult<IEnumerable<Ville>> Get()
+        [ProducesResponseType(typeof(List<VilleDTO>), StatusCodes.Status200OK)]
+        public ActionResult<IEnumerable<VilleDTO>> Get()
         {
-            return _villesBL.GetList().ToList();
+            return Ok(_villesBL.GetList());
         }
 
         // GET api/<VillesController>/5
@@ -35,71 +38,77 @@ namespace EvenementsAPI.Controllers
         /// Obtenir les detail d'une Ville a partir de son id
         /// </summary>
         /// <param name="id">Identifiant de la Ville</param>
-        /// <returns><see cref="Ville"/></returns>
+        /// <returns><see cref="VilleDTO"/></returns>
         [HttpGet("{id}")]
-        [ProducesResponseType(typeof(Ville), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(VilleDTO), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public ActionResult<Ville> Get(int id)
+        public ActionResult<VilleDTO> Get(int id)
         {
             var ville = _villesBL.Get(id);
 
             return ville != null ? Ok(ville) : NotFound();
         }
 
+        // GET api/<VillesController>/5/evenements
+        /// <summary>
+        /// Obtenir les événement associés à une ville par l'ID de la ville
+        /// </summary>
+        /// <param name="id">Identifiant de la Ville</param>
+        [HttpGet("{id}/evenements")]
+        [ProducesResponseType(typeof(VilleDTO), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public ActionResult<IEnumerable<EvenementDTO>> GetEvenements(int id)
+        {
+            return Ok(_villesBL.GetEvenements(id));
+        }
+
         // POST api/<VillesController>
         /// <summary>
         /// Permet d'ajouter un Ville
         /// </summary>
-        /// <param name="value"><see cref="Ville"/> Nouvelle Ville</param>
+        /// <param name="value"><see cref="VilleDTO"/> Nouvelle Ville</param>
         /// <returns></returns>
         [HttpPost]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        [ProducesResponseType(StatusCodes.Status200OK)]
-        public ActionResult Post([FromBody] Ville value)
+        [ProducesResponseType(StatusCodes.Status201Created)]
+        public ActionResult Post([FromBody] VilleDTO value)
         {
-            if (value == null)
-            {
-                return BadRequest(new { Error = "Ville doit pas etre null" });
-            }
-            value.Id = Repository.IdSequenceVille++;
             _villesBL.Add(value);
-             return Ok(value);
+            return CreatedAtAction(nameof(Get), new { id = value.Id }, null);
         }
 
-        
+
 
         // PUT api/<VillesController>/5
+        /// <summary>
+        /// Modifier une ville existante
+        /// </summary>
+        /// <param name="id">ID de la ville</param>
+        /// <param name="value">La ville à modifier</param>
         [HttpPut("{id}")]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
-        public ActionResult Put(int id, [FromBody] Ville value)
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public ActionResult Put(int id, [FromBody] VilleDTO value)
         {
-            if (value == null)
-            {
-                return BadRequest();
-            }
-            var ville = _villesBL.Get(id);
-            if (ville == null)
-            {
-                return NotFound();
-            }
-            ville.Nom = value.Nom;
-            ville.Region = value.Region;
-            
-            
+            _villesBL.Updade(id, value);
             return NoContent();
         }
 
         // DELETE api/<VillesController>/5
+        /// <summary>
+        /// Suppression d'un événement
+        /// </summary>
+        /// <param name="id">ID de la ville</param>
+        /// <returns></returns>
         [HttpDelete("{id}")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public ActionResult Delete(int id)
         {
-            var ville = _villesBL.Get(id);
-            if (ville != null)
-            {
-                Repository.Villes.Remove(ville);
-            }
+
+            _villesBL.Delete(id);
             return NoContent();
         }
 

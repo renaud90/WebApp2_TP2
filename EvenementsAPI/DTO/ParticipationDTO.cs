@@ -1,14 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace EvenementsAPI.Models
+namespace EvenementsAPI.DTO
 {
-    public class Participation : BaseEntite
+    public class ParticipationDTO
     {
+        public int Id { get; set; }
         [Required]
         public string Nom { get; set; }
         [Required]
@@ -18,8 +18,7 @@ namespace EvenementsAPI.Models
         public string Courriel { get; set; }
         [Required]
         public int NbPlaces { get; set; }
-        public bool IsValid { get; set; } = false;
         public int EvenementId { get; set; }
-        public Evenement Evenement { get; set; }
+
     }
 }

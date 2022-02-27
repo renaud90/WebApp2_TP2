@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Web2Data.API.Extensions;
 
 namespace EvenementsAPI
 {
@@ -13,7 +14,9 @@ namespace EvenementsAPI
     {
         public static void Main(string[] args)
         {
-            CreateHostBuilder(args).Build().Run();
+            var host = CreateHostBuilder(args).Build();
+            host.CreateDbIfNotExists();
+            host.Run();
         }
 
         public static IHostBuilder CreateHostBuilder(string[] args) =>

@@ -1,4 +1,7 @@
-﻿using EvenementsAPI.Models;
+﻿using EvenementsAPI.Data;
+using EvenementsAPI.DTO;
+using EvenementsAPI.Models;
+using EvenementsAPI.Repositories;
 using Microsoft.AspNetCore.Http;
 using System;
 using System.Collections.Generic;
@@ -9,90 +12,145 @@ namespace EvenementsAPI.BusinessLogic
 {
     public class ParticipationsBL : IParticipationsBL
     {
-        public Participation Add(Participation value)
+        private readonly IEvenementRepository _repoEvenement;
+        private readonly IRepository<Participation> _repoParticipations;
+        public ParticipationsBL(IEvenementRepository repoEvenement, IRepository<Participation> repoParticipations)
         {
-
-            if (value == null)
+            _repoEvenement = repoEvenement;
+            _repoParticipations = repoParticipations;
+        }
+        public ParticipationDTO Add(ParticipationDTO value)
+        {
+            var participation = new Participation
             {
-                throw new HttpException
-                {
-                    Errors = new { Errors = "Parametres d'entrés non valides" },
-                    StatusCode = StatusCodes.Status400BadRequest
-                };
-            }
+                Courriel = value.Courriel,
+                EvenementId = value.EvenementId,
+                NbPlaces = value.NbPlaces,
+                Nom = value.Nom,
+                Prenom = value.Prenom
+            };
+            ValiderModeleDeParticipation(participation);
 
-            value.Id = Repository.IdSequenceParticipation++;
-            Repository.Participations.Add(value);
+            _repoParticipations.Add(participation);
 
             return value;
         }
 
-        public IEnumerable<Participation> GetList()
+        public bool GetStatus(int id)
         {
-            return Repository.Participations;
-        }
-
-        public Participation Get(int id)
-        {
-            var Participation = Repository.Participations.FirstOrDefault(x => x.Id == id);
-            if (Participation == null)
+            var participation = _repoParticipations.GetById(id);
+            if (participation == null)
             {
                 throw new HttpException
                 {
                     Errors = new { Errors = $"Element introuvable (id = {id})" },
-                    StatusCode = StatusCodes.Status400BadRequest
+                    StatusCode = StatusCodes.Status404NotFound
+                };
+            }
+            if (participation.IsValid)
+            {
+                return true;
+            }
+            verifyParticipation(participation);
+            return false;
+        }
+
+        public IEnumerable<ParticipationDTO> GetList()
+        {
+            return _repoParticipations.GetAll().Where(_ => _.IsValid).Select(_ => new ParticipationDTO {
+                Courriel = _.Courriel,
+                EvenementId = _.EvenementId,
+                NbPlaces = _.NbPlaces,
+                Nom = _.Nom,
+                Prenom = _.Prenom
+            });
+        }
+
+        public ParticipationDTO Get(int id)
+        {
+            var participation = _repoParticipations.GetById(id);
+            if (participation == null || !participation.IsValid)
+            {
+                throw new HttpException
+                {
+                    Errors = new { Errors = $"Element introuvable (id = {id})" },
+                    StatusCode = StatusCodes.Status404NotFound
                 };
             }
 
-            return Participation;
+            return new ParticipationDTO {
+                Id = participation.Id,
+                Courriel = participation.Courriel,
+                EvenementId = participation.EvenementId,
+                NbPlaces = participation.NbPlaces,
+                Nom = participation.Nom,
+                Prenom = participation.Prenom
+            };
 
         }
 
-        public Participation Updade(int id, Participation value)
+        
+        public void Delete(int id)
+        {
+            var participation = _repoParticipations.GetById(id);
+            if (participation == null)
+            {
+                throw new HttpException
+                {
+                    Errors = new { Errors = $"Element introuvable (id = {id})" },
+                    StatusCode = StatusCodes.Status404NotFound
+                };
+            }
+
+            _repoParticipations.Delete(id);
+        }
+
+        private void ValiderModeleDeParticipation(Participation value)
         {
             if (value == null)
             {
                 throw new HttpException
                 {
-                    Errors = new { Errors = "Parametres d'entrés non valides" },
+                    Errors = new { Errors = "Parametres d'entrée non valides" },
                     StatusCode = StatusCodes.Status400BadRequest
                 };
             }
-
-            var Participation = Repository.Participations.FirstOrDefault(x => x.Id == id);
-
-
-            if (Participation == null)
+            if (String.IsNullOrEmpty(value.Nom) ||
+                String.IsNullOrEmpty(value.Prenom) ||
+                String.IsNullOrEmpty(value.Courriel) ||
+                value.EvenementId < 1 || value.NbPlaces < 1)
             {
                 throw new HttpException
                 {
-                    Errors = new { Errors = $"Element introuvable (id = {id})" },
+                    Errors = new { Errors = "Parametres d'entrée non valides" },
+                    StatusCode = StatusCodes.Status400BadRequest
+                };
+            }
+           
+            if (_repoEvenement.GetAll().FirstOrDefault(e => e.Id == value.EvenementId) == null)
+            {
+                throw new HttpException
+                {
+                    Errors = new { Errors = $"Parametres d'entrée non valides: événement avec Id {value.EvenementId} inexistant" },
                     StatusCode = StatusCodes.Status400BadRequest
                 };
             }
 
-            Participation.Nom = value.Nom;
-            Participation.Prenom = value.Prenom;
-            Participation.Courriel = value.Courriel;
-            Participation.NbPlaces = value.NbPlaces;
-
-            return Participation;
+            if (_repoParticipations.GetAll().FirstOrDefault(p => p.Courriel == value.Courriel && p.EvenementId == value.EvenementId) != null)
+            {
+                throw new HttpException
+                {
+                    Errors = new { Errors = $"Parametres d'entrée non valides: une participation enregistrée à l'adresse courriel {value.Courriel} pour l'événement avec Id {value.EvenementId} existe déjà" },
+                    StatusCode = StatusCodes.Status400BadRequest
+                };
+            }
         }
 
-        public Participation Delete(int id)
+        private void verifyParticipation(Participation participation)
         {
-            var Participation = Repository.Participations.FirstOrDefault(x => x.Id == id);
-            if (Participation == null)
-            {
-                throw new HttpException
-                {
-                    Errors = new { Errors = $"Element introuvable (id = {id})" },
-                    StatusCode = StatusCodes.Status400BadRequest
-                };
-            }
-
-            Repository.Participations.Remove(Participation);
-            return Participation;
+            var isValid = new Random().Next(1, 10) >= 1 ? true : false;//Simuler la validation externe;
+            participation.IsValid = isValid;
+            _repoParticipations.Update(participation);
         }
     }
 }

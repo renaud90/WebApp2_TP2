@@ -1,5 +1,5 @@
 ﻿using EvenementsAPI.BusinessLogic;
-using EvenementsAPI.Models;
+using EvenementsAPI.DTO;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using System;
@@ -9,8 +9,6 @@ using System.Threading.Tasks;
 
 namespace EvenementsAPI.Controllers
 {
-    
-
     [Route("api/[controller]")]
     [ApiController]
     [Produces("application/json")]
@@ -29,8 +27,8 @@ namespace EvenementsAPI.Controllers
         /// </summary>
         /// <returns></returns>
         [HttpGet]
-        [ProducesResponseType(typeof(List<Participation>), StatusCodes.Status200OK)]
-        public ActionResult<IEnumerable<Participation>> Get()
+        [ProducesResponseType(typeof(List<ParticipationDTO>), StatusCodes.Status200OK)]
+        public ActionResult<IEnumerable<ParticipationDTO>> Get()
         {
             return _participationsBL.GetList().ToList();
         }
@@ -40,11 +38,11 @@ namespace EvenementsAPI.Controllers
         /// Obtenir les detail d'une participation a partir de son id
         /// </summary>
         /// <param name="id">Identifiant de la participation</param>
-        /// <returns><see cref="Participation"/></returns>
+        /// <returns><see cref="ParticipationDTO"/></returns>
         [HttpGet("{id}")]
-        [ProducesResponseType(typeof(Participation), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ParticipationDTO), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public ActionResult<Participation> Get(int id)
+        public ActionResult<ParticipationDTO> Get(int id)
         {
             var participation = _participationsBL.Get(id);
 
@@ -55,21 +53,14 @@ namespace EvenementsAPI.Controllers
         /// <summary>
         /// Permet d'ajouter un Participation
         /// </summary>
-        /// <param name="value"><see cref="Participation"/> Nouvelle Participation</param>
+        /// <param name="value"><see cref="ParticipationDTO"/> Nouvelle Participation</param>
         /// <returns></returns>
         [HttpPost]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status202Accepted)]
-        public ActionResult Post([FromBody] Participation value)
+        public ActionResult Post([FromBody] ParticipationDTO value)
         {
-            if (value == null)
-            {
-                return BadRequest(new { Error = "Participation doit pas etre null" });
-            }
-            
 
-            value.Id = Repository.IdSequenceParticipation++;
-            value.IsValid = false;
             _participationsBL.Add(value);
 
             return new AcceptedResult { Location = Url.Action(nameof(Status), new { id = value.Id }) };
@@ -86,69 +77,33 @@ namespace EvenementsAPI.Controllers
         [ProducesResponseType(StatusCodes.Status303SeeOther)]
         public ActionResult Status(int id)
         {
-            var Participation = _participationsBL.Get(id);
-            if (Participation == null) 
+            if (_participationsBL.GetStatus(id))
             {
-                return NotFound();
-            }
-
-            if (Participation.IsValid) {
                 Response.Headers.Add("Location", Url.Action(nameof(Get), new { id = id }));
                 return new StatusCodeResult(StatusCodes.Status303SeeOther);
             }
-            verifyParticipation(Participation);
-
-            return Ok(new { status = "Validation en attente" });
-
+            else
+            {
+                return Ok(new { status = "Validation en attente" });
+            }  
         }
 
-        // PUT api/<ParticipationsController>/5
-        [HttpPut("{id}")]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        [ProducesResponseType(StatusCodes.Status204NoContent)]
-        public ActionResult Put(int id, [FromBody] Participation value)
-        {
-            if (value == null)
-            {
-                return BadRequest();
-            }
-            var participation = _participationsBL.Get(id);
-            if (participation == null)
-            {
-                return NotFound();
-            }
-            participation.Nom = value.Nom;
-            participation.Prenom = value.Prenom;
-            participation.Courriel = value.Courriel;
-            participation.NbPlaces = value.NbPlaces;
-            
-            return NoContent();
-        }
+
 
         // DELETE api/<ParticipationsController>/5
+        /// <summary>
+        /// Suppression d'une participation
+        /// </summary>
+        /// <param name="id">ID de la participation</param>
+        /// <returns></returns>
         [HttpDelete("{id}")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
         public ActionResult Delete(int id)
         {
-            var participation = _participationsBL.Get(id);
-            if (participation != null)
-            {
-                Repository.Participations.Remove(participation);
-            }
+            _participationsBL.Delete(id);
+
             return NoContent();
         }
-
-
-        private void verifyParticipation(Participation Participation)
-        {
-            var isValid = new Random().Next(1, 10) > 5 ? true : false;//Simuler la validation externe;
-            Participation.IsValid = isValid;
-        }
-
-
-
-
-
-
     }
 }

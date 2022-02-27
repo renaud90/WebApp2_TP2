@@ -6,10 +6,9 @@ using System.Threading.Tasks;
 
 namespace EvenementsAPI.Models
 {
-    public class Categorie : BaseEntite
+    public abstract class BaseEntite
     {
-        [Required]
-        public string Nom { get; set; }
-        public ICollection<CategorieEvenement> EvenementCategories { get; set; }
+        [Key]
+        public virtual int Id { get; set; }
     }
 }
