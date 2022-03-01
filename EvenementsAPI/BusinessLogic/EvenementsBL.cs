@@ -163,6 +163,10 @@ namespace EvenementsAPI.BusinessLogic
             
         }
 
+        public double GetTotalVentes(int id)
+        {
+            return _repoEvenement.GetTotalVentes(id);
+        }
         private void ValiderModele(EvenementDTO value)
         {
             if (value == null)

@@ -35,7 +35,7 @@ namespace EvenementsAPI.Controllers
             return Ok(_evenementsBL.GetList(pageIndex, pageCount, filter));
         }
 
-        // GET api/usagers/5
+        // GET api/evenements/5
         /// <summary>
         /// Obtenir une événement par son ID
         /// </summary>
@@ -47,6 +47,19 @@ namespace EvenementsAPI.Controllers
         {
             var evenement = _evenementsBL.Get(id);
             return evenement is null ? NotFound(new { Errors = $"Element introuvable (id = {id})" }) : Ok(evenement);
+        }
+
+        // GET api/evenements/5/ventes
+        /// <summary>
+        /// Obtenir une événement par son ID
+        /// </summary>
+        /// <param name="id"> ID de l'événement</param>
+        [HttpGet("{id}/ventes")]
+        [ProducesResponseType(typeof(EvenementDTO), (int)HttpStatusCode.OK)]
+        [ProducesResponseType((int)HttpStatusCode.NotFound)]
+        public ActionResult<double> GetVentes(int id)
+        {
+            return Ok(_evenementsBL.GetTotalVentes(id));
         }
 
         // GET api/usagers/5/participations

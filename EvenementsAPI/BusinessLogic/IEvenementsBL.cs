@@ -14,5 +14,6 @@ namespace EvenementsAPI.BusinessLogic
         public EvenementDTO Add(EvenementDTO value);
         public EvenementDTO Update(int id, EvenementDTO value);
         public void Delete(int id);
+        public double GetTotalVentes(int id);
     }
 }

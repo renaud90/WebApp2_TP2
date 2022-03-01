@@ -33,6 +33,18 @@ namespace EvenementsAPI.Controllers
             return Ok(_villesBL.GetList());
         }
 
+        // GET: api/<VillesController>/sorted
+        /// <summary>
+        /// Lister tous les Villes enregistré
+        /// </summary>
+        /// <returns></returns>
+        [HttpGet("ordered")]
+        [ProducesResponseType(typeof(List<VilleDTO>), StatusCodes.Status200OK)]
+        public ActionResult<IEnumerable<VilleDTO>> GetOrderedByNbEvenements()
+        {
+            return Ok(_villesBL.GetByNbEvenementsOrdered());
+        }
+
         // GET api/<VillesController>/5
         /// <summary>
         /// Obtenir les detail d'une Ville a partir de son id

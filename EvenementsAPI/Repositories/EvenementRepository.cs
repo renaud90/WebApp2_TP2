@@ -1,5 +1,6 @@
 ﻿using EvenementsAPI.Data;
 using EvenementsAPI.Models;
+using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
@@ -49,7 +50,16 @@ namespace EvenementsAPI.Repositories
 
         public double GetTotalVentes(int id)
         {
-            var prix = GetById(id).Prix;
+            var evenement = GetById(id);
+            if (evenement == null)
+            {
+                throw new HttpException
+                {
+                    Errors = new { Errors = $"Element introuvable (id = {id})" },
+                    StatusCode = StatusCodes.Status404NotFound
+                };
+            }
+            var prix = evenement.Prix;
             return _dbContext.Set<Participation>()
                              .AsNoTracking()
                              .Where(_ => _.EvenementId == id)

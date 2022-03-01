@@ -136,6 +136,11 @@ namespace EvenementsAPI.BusinessLogic
             _repoVille.Delete(id); 
         }
 
+        public ICollection<VilleDTO> GetByNbEvenementsOrdered()
+        {
+           return _repoVille.GetByNbEvenementsOrdered();
+        }
+
         private void ValiderModeleVille(Ville value)
         {
             if (value == null)
@@ -155,5 +160,7 @@ namespace EvenementsAPI.BusinessLogic
                 };
             }
         }
+
+        
     }
 }

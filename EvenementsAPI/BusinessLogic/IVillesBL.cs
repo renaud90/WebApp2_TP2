@@ -16,5 +16,6 @@ namespace EvenementsAPI.BusinessLogic
         public VilleDTO Updade(int id, VilleDTO value);
 
         public void Delete(int id);
+        public ICollection<VilleDTO> GetByNbEvenementsOrdered();
     }
 }
